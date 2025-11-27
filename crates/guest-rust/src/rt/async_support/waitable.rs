@@ -204,7 +204,7 @@ where
         }
 
         unsafe extern "C" fn cabi_wake(ptr: *mut c_void, code: u32) {
-            let ptr: &mut CompletionStatus = &mut *ptr.cast::<CompletionStatus>();
+            let ptr: &mut CompletionStatus = unsafe { &mut *ptr.cast::<CompletionStatus>() };
             ptr.code = Some(code);
             ptr.waker.take().unwrap().wake()
         }
