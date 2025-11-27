@@ -397,7 +397,7 @@ where
                     // situation no cancellation is necessary, the async
                     // operation is now inert, and we can immediately return.
                     Poll::Ready(result) => {
-                        return self.as_mut().pin_project().0.result_into_cancel(result)
+                        return self.as_mut().pin_project().0.result_into_cancel(result);
                     }
 
                     // The operation, despite receiving an update via a code,
