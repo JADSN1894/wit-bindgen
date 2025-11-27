@@ -48,7 +48,7 @@ macro_rules! extern_wasm {
 
         #[cfg(target_family = "wasm")]
         $(#[$extern_attr])*
-        extern "C" {
+        unsafe extern "C" {
             $(
                 $(#[$func_attr])*
                 $vis fn $func_name($($args)*) $(-> $ret)?;
@@ -293,8 +293,13 @@ unsafe extern "C" fn waitable_register(
 ) -> *mut c_void {
     let ptr = ptr.cast::<FutureState<'static>>();
     assert!(!ptr.is_null());
-    (*ptr).add_waitable(waitable);
-    match (*ptr).waitables.insert(waitable, (callback_ptr, callback)) {
+    // SAFETY: Caller guarantees `ptr` is valid, non-null, and not concurrently accessed
+    let ptr_non_null = unsafe { &mut *ptr };
+    ptr_non_null.add_waitable(waitable);
+    match ptr_non_null
+        .waitables
+        .insert(waitable, (callback_ptr, callback))
+    {
         Some((prev, _)) => prev,
         None => ptr::null_mut(),
     }
@@ -303,8 +308,8 @@ unsafe extern "C" fn waitable_register(
 unsafe extern "C" fn waitable_unregister(ptr: *mut c_void, waitable: u32) -> *mut c_void {
     let ptr = ptr.cast::<FutureState<'static>>();
     assert!(!ptr.is_null());
-    (*ptr).remove_waitable(waitable);
-    match (*ptr).waitables.remove(&waitable) {
+    unsafe { (*ptr).remove_waitable(waitable) };
+    match unsafe { (*ptr).waitables.remove(&waitable) } {
         Some((prev, _)) => prev,
         None => ptr::null_mut(),
     }

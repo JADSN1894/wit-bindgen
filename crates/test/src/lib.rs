@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use clap::Parser;
 use rayon::prelude::*;
 use std::borrow::Cow;
@@ -1078,7 +1078,7 @@ fn has_component_type_sections(wasm: &[u8]) -> bool {
     for payload in wasmparser::Parser::new(0).parse_all(wasm) {
         match payload {
             Ok(wasmparser::Payload::CustomSection(s)) if s.name().starts_with("component-type") => {
-                return true
+                return true;
             }
             _ => {}
         }
